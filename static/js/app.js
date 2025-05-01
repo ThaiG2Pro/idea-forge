@@ -92,10 +92,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const finalIdeaElement = document.getElementById('final-idea');
         const finalIdea = summary.final_idea;
         
+        // Format key features as a list if they exist in the data
+        let keyFeaturesHTML = '';
+        if (finalIdea.key_features && Array.isArray(finalIdea.key_features) && finalIdea.key_features.length > 0) {
+            keyFeaturesHTML = `
+                <div class="key-features-title">Key Features:</div>
+                <div class="key-features">
+                    <ul>
+                        ${finalIdea.key_features.map(feature => `<li>${feature}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+        
         finalIdeaElement.innerHTML = `
             <div class="idea-card">
                 <div class="idea-title">${finalIdea.title}</div>
                 <div class="idea-description">${finalIdea.description}</div>
+                ${keyFeaturesHTML}
                 <div class="evaluation-scores">
                     <span class="score-item">Total Score: ${finalIdea.total_score}</span>
                 </div>
@@ -169,15 +183,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         const ideaCard = document.createElement('div');
                         ideaCard.className = 'idea-card';
                         
+                        // Format key features as a proper list
+                        const keyFeaturesList = idea.key_features && Array.isArray(idea.key_features) && idea.key_features.length > 0 
+                            ? `
+                                <div class="idea-features">
+                                    <div class="key-features-title">Key Features:</div>
+                                    <ul>
+                                        ${idea.key_features.map(feature => `<li>${feature}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `
+                            : '';
+                        
                         ideaCard.innerHTML = `
                             <div class="idea-title">${idea.title}</div>
                             <div class="idea-description">${idea.description}</div>
-                            <div class="idea-features">
-                                <strong>Key Features:</strong>
-                                <ul>
-                                    ${idea.key_features.map(feature => `<li>${feature}</li>`).join('')}
-                                </ul>
-                            </div>
+                            ${keyFeaturesList}
                         `;
                         
                         ideasDiv.appendChild(ideaCard);

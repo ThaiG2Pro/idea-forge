@@ -310,4 +310,48 @@ button {
     .card {
         padding: 15px;
     }
+}
+
+/* Ideas and evaluation styling */
+.idea-features {
+    margin-top: 10px;
+    margin-left: 15px;
+}
+
+.idea-features ul {
+    padding-left: 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.key-features-title {
+    font-weight: 600;
+    margin-top: 8px;
+    margin-bottom: 5px;
+}
+
+/* Fix for bullet point alignment */
+.idea-card ul, .evaluation-card ul {
+    padding-left: 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.conversation-box ul {
+    padding-left: 20px;
+}
+
+/* Indentation for nested content */
+.feature-list {
+    margin-left: 15px;
+}
+
+/* Specific fixes for summary section */
+#final-idea ul, #development-path ul {
+    padding-left: 20px;
+}
+
+#final-idea .key-features {
+    margin-left: 15px;
+    margin-top: 5px;
 } 

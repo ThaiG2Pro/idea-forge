@@ -2,6 +2,7 @@ import os
 import json
 import requests
 from dotenv import load_dotenv
+import re
 
 # Load environment variables
 load_dotenv()
@@ -12,9 +13,27 @@ class LLMClient:
         self.provider = None
         self.model = None
         
-    def generate(self, prompt, is_json=False):
+    def generate(self, prompt, is_json=False, json_mode="loose"):
         """Generate a response from the LLM."""
         raise NotImplementedError("Subclasses must implement this method")
+
+    def _clean_json_response(self, content):
+        """Clean up the JSON response to make it valid."""
+        content = content.strip()
+        
+        # Remove markdown code blocks if present
+        if content.startswith('```json'):
+            content = content.replace('```json', '', 1).strip()
+        elif content.startswith('```'):
+            content = content.replace('```', '', 1).strip()
+        if content.endswith('```'):
+            content = content[:-3].strip()
+            
+        # Remove any trailing commas in arrays or objects
+        content = re.sub(r',\s*}', '}', content)
+        content = re.sub(r',\s*]', ']', content)
+        
+        return content
 
 class GroqClient(LLMClient):
     """Client for Groq API."""
@@ -28,7 +47,26 @@ class GroqClient(LLMClient):
         if not self.api_key:
             raise ValueError("GROQ_API_KEY environment variable is not set")
             
-    def generate(self, prompt, is_json=False):
+    def generate(self, prompt, is_json=False, json_mode="loose"):
+        # Add more explicit instructions for JSON formatting
+        if is_json:
+            if json_mode == "strict":
+                prompt = f"""
+                {prompt}
+                
+                CRITICAL: You MUST respond with ONLY a valid JSON object.
+                DO NOT include any explanations, markdown formatting, code block markers, or any text before or after the JSON.
+                Your entire response should be valid JSON that can be parsed by Python's json.loads() function.
+                """
+            else:
+                prompt = f"""
+                {prompt}
+                
+                IMPORTANT: You must respond with ONLY a valid JSON object without any additional text, explanations, or markdown formatting.
+                DO NOT include ```json, backticks, or any other text markers.
+                The response must be parseable by Python's json.loads() function.
+                """
+            
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -37,7 +75,7 @@ class GroqClient(LLMClient):
         data = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7
+            "temperature": 0.2  # Further reduced temperature for more reliable JSON output
         }
         
         if is_json:
@@ -52,7 +90,19 @@ class GroqClient(LLMClient):
         content = result["choices"][0]["message"]["content"]
         
         if is_json:
-            return json.loads(content)
+            try:
+                # First try to parse directly
+                return json.loads(content)
+            except json.JSONDecodeError as e:
+                # Try to clean up the response
+                cleaned_content = self._clean_json_response(content)
+                    
+                # Try parsing again
+                try:
+                    return json.loads(cleaned_content)
+                except json.JSONDecodeError:
+                    error_msg = f"Failed to parse JSON response. Error: {str(e)}\nResponse: {content[:200]}..."
+                    raise ValueError(error_msg)
         return content
 
 class OpenAIClient(LLMClient):
@@ -70,20 +120,51 @@ class OpenAIClient(LLMClient):
         import openai
         self.client = openai.OpenAI(api_key=self.api_key)
             
-    def generate(self, prompt, is_json=False):
+    def generate(self, prompt, is_json=False, json_mode="loose"):
+        # Add more explicit instructions for JSON formatting
+        if is_json:
+            if json_mode == "strict":
+                prompt = f"""
+                {prompt}
+                
+                CRITICAL: You MUST respond with ONLY a valid JSON object.
+                DO NOT include any explanations, markdown formatting, code block markers, or any text before or after the JSON.
+                Your entire response should be valid JSON that can be parsed by Python's json.loads() function.
+                """
+            else:
+                prompt = f"""
+                {prompt}
+                
+                IMPORTANT: You must respond with ONLY a valid JSON object without any additional text, explanations, or markdown formatting.
+                DO NOT include ```json, backticks, or any other text markers.
+                The response must be parseable by Python's json.loads() function.
+                """
+            
         response_format = {"type": "json_object"} if is_json else None
         
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
+            temperature=0.2,  # Further reduced temperature for more reliable JSON output
             response_format=response_format
         )
         
         content = response.choices[0].message.content
         
         if is_json:
-            return json.loads(content)
+            try:
+                # First try to parse directly
+                return json.loads(content)
+            except json.JSONDecodeError as e:
+                # Try to clean up the response
+                cleaned_content = self._clean_json_response(content)
+                    
+                # Try parsing again
+                try:
+                    return json.loads(cleaned_content)
+                except json.JSONDecodeError:
+                    error_msg = f"Failed to parse JSON response. Error: {str(e)}\nResponse: {content[:200]}..."
+                    raise ValueError(error_msg)
         return content
 
 class AnthropicClient(LLMClient):
@@ -101,22 +182,52 @@ class AnthropicClient(LLMClient):
         import anthropic
         self.client = anthropic.Anthropic(api_key=self.api_key)
             
-    def generate(self, prompt, is_json=False):
+    def generate(self, prompt, is_json=False, json_mode="loose"):
         system_prompt = "Please provide a detailed response."
+        
         if is_json:
-            system_prompt = "Please provide a response in valid JSON format."
+            if json_mode == "strict":
+                system_prompt = """You must respond with ONLY a valid JSON object without any additional text, explanations, or markdown formatting.
+                DO NOT include ```json or backticks or any other text. The response must be parseable by Python's json.loads() function."""
+                
+                prompt = f"""
+                {prompt}
+                
+                CRITICAL: Your response must be a valid JSON object ONLY - no explanation text, no markdown formatting.
+                """
+            else:
+                system_prompt = """You must respond with ONLY a valid JSON object without any additional text, explanations, or markdown formatting.
+                DO NOT include ```json or backticks. The response must be parseable by Python's json.loads() function."""
+                
+                prompt = f"""
+                {prompt}
+                
+                IMPORTANT: Your response must be a valid JSON object without any additional text.
+                """
         
         response = self.client.messages.create(
             model=self.model,
             system=system_prompt,
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
+            temperature=0.2  # Further reduced temperature for more reliable JSON output
         )
         
         content = response.content[0].text
         
         if is_json:
-            return json.loads(content)
+            try:
+                # First try to parse directly
+                return json.loads(content)
+            except json.JSONDecodeError as e:
+                # Try to clean up the response
+                cleaned_content = self._clean_json_response(content)
+                    
+                # Try parsing again
+                try:
+                    return json.loads(cleaned_content)
+                except json.JSONDecodeError:
+                    error_msg = f"Failed to parse JSON response. Error: {str(e)}\nResponse: {content[:200]}..."
+                    raise ValueError(error_msg)
         return content
 
 class GoogleAIClient(LLMClient):
@@ -135,26 +246,46 @@ class GoogleAIClient(LLMClient):
         genai.configure(api_key=self.api_key)
         self.model_obj = genai.GenerativeModel(self.model)
             
-    def generate(self, prompt, is_json=False):
+    def generate(self, prompt, is_json=False, json_mode="loose"):
         if is_json:
-            prompt = f"{prompt}\n\nImportant: Respond with only a valid JSON object, without any additional text or explanation."
-            
-        response = self.model_obj.generate_content(prompt)
-        content = response.text
-        
-        if is_json:
-            # Clean the response to ensure it's valid JSON
-            # Some models might add markdown backticks or other text
-            content = content.strip()
-            if content.startswith("```json"):
-                content = content.replace("```json", "", 1).strip()
-            if content.startswith("```"):
-                content = content.replace("```", "", 1).strip()
-            if content.endswith("```"):
-                content = content[:-3].strip()
+            if json_mode == "strict":
+                prompt = f"""
+                {prompt}
                 
-            return json.loads(content)
-        return content
+                CRITICAL: You MUST respond with ONLY a valid JSON object.
+                DO NOT include any explanations, markdown formatting, code block markers, or any text before or after the JSON.
+                Your entire response should be valid JSON that can be parsed by Python's json.loads() function.
+                """
+            else:
+                prompt = f"""
+                {prompt}
+                
+                IMPORTANT: You must respond with ONLY a valid JSON object without any additional text, explanations, or markdown formatting.
+                DO NOT include ```json, backticks, or any other text markers.
+                The response must be parseable by Python's json.loads() function.
+                """
+            
+        try:
+            response = self.model_obj.generate_content(prompt, generation_config={"temperature": 0.2})
+            content = response.text
+            
+            if is_json:
+                try:
+                    # First try to parse directly
+                    return json.loads(content)
+                except json.JSONDecodeError as e:
+                    # Try to clean up the response
+                    cleaned_content = self._clean_json_response(content)
+                        
+                    # Try parsing again
+                    try:
+                        return json.loads(cleaned_content)
+                    except json.JSONDecodeError:
+                        error_msg = f"Failed to parse JSON response. Error: {str(e)}\nResponse: {content[:200]}..."
+                        raise ValueError(error_msg)
+            return content
+        except Exception as e:
+            raise Exception(f"Error with Google AI API: {str(e)}")
 
 def get_llm_client():
     """Factory function to get the appropriate LLM client based on environment variables."""

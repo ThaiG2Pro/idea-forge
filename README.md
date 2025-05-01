@@ -29,7 +29,7 @@ Idea Forge is a locally-hosted web application that helps you generate, evaluate
 
 1. Clone the repository:
 ```
-git clone https://github.com/yourusername/idea-forge.git
+git clone https://github.com/ThaiG2Pro/idea-forge.git
 cd idea-forge
 ```
 
