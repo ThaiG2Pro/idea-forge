@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idea Forge - AI-Powered Idea Brainstorming</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Idea Forge</h1>
+            <p class="subtitle">AI-Powered Idea Brainstorming Tool</p>
+        </header>
+
+        <main>
+            <section id="input-section" class="card">
+                <h2>Start Your Ideation Journey</h2>
+                <form id="idea-form">
+                    <div class="form-group">
+                        <label for="keyword">Idea Keyword or Concept:</label>
+                        <input type="text" id="keyword" name="keyword" placeholder="e.g., Online education platform" required>
+                        <div class="sample-keywords">
+                            <p>Sample keywords: <span class="keyword-pill">Food delivery</span> <span class="keyword-pill">Personal finance</span> <span class="keyword-pill">Health tracking</span></p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="iterations">Number of Iterations:</label>
+                        <select id="iterations" name="iterations">
+                            <option value="2">2 - Quick Refinement</option>
+                            <option value="3" selected>3 - Standard (Recommended)</option>
+                            <option value="4">4 - Extensive</option>
+                            <option value="5">5 - Comprehensive</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="start-btn" class="btn-primary">Start New Idea</button>
+                </form>
+            </section>
+
+            <section id="loading-section" class="card hidden">
+                <div class="loading-spinner"></div>
+                <p>Brainstorming in progress...</p>
+                <p class="loading-step">Generating initial ideas</p>
+            </section>
+
+            <section id="results-section" class="card hidden">
+                <div class="results-header">
+                    <h2>Ideation Results</h2>
+                    <div class="actions">
+                        <button id="download-pdf" class="btn-secondary">Download PDF</button>
+                        <button id="start-new" class="btn-primary">Start New</button>
+                    </div>
+                </div>
+
+                <div class="summary-box">
+                    <h3>Final Idea</h3>
+                    <div id="final-idea">
+                        <!-- Final idea will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="process-box">
+                    <h3>Development Path</h3>
+                    <ol id="development-path">
+                        <!-- Development path will be inserted here -->
+                    </ol>
+                </div>
+
+                <div class="conversation-box">
+                    <h3>Detailed Process</h3>
+                    <div id="conversation">
+                        <!-- Conversation will be inserted here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Idea Forge - Open Source AI-Powered Brainstorming Tool | <a href="https://github.com/yourusername/idea-forge" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 

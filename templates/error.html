@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Idea Forge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Idea Forge</h1>
+            <p class="subtitle">AI-Powered Idea Brainstorming Tool</p>
+        </header>
+
+        <main>
+            <section class="card">
+                <div class="error-container">
+                    <h2>An Error Occurred</h2>
+                    <p class="error-message">{{ error }}</p>
+                    <div class="error-actions">
+                        <a href="/" class="btn-primary">Return to Home</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Idea Forge - Open Source AI-Powered Brainstorming Tool | <a href="https://github.com/yourusername/idea-forge" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>

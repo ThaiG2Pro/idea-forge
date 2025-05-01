@@ -1,0 +1,79 @@
+{
+  "backend_options": {
+    "frameworks": [
+      {
+        "name": "Express.js",
+        "language": "JavaScript/TypeScript",
+        "description": "Lightweight, flexible Node.js framework"
+      },
+      {
+        "name": "FastAPI",
+        "language": "Python",
+        "description": "Modern, high-performance Python framework"
+      },
+      {
+        "name": "Rails API",
+        "language": "Ruby",
+        "description": "Convention-over-configuration Ruby framework"
+      }
+    ]
+  },
+  "recommended_structure": {
+    "routes": "/routes/*.js",
+    "controllers": "/controllers/*.js",
+    "services": "/services/*.js",
+    "models": "/models/*.js",
+    "middleware": "/middleware/*.js",
+    "utils": "/utils/*.js",
+    "config": "/config/*.js"
+  },
+  "authentication": {
+    "methods": [
+      {
+        "name": "JWT",
+        "library": "jsonwebtoken",
+        "description": "Stateless authentication with tokens"
+      },
+      {
+        "name": "OAuth2",
+        "libraries": ["passport", "oauth2-server"],
+        "description": "For third-party authentication"
+      }
+    ]
+  },
+  "database": {
+    "options": [
+      {
+        "type": "PostgreSQL",
+        "orm": "Sequelize/Prisma/TypeORM",
+        "use_case": "Relational data with ACID compliance"
+      },
+      {
+        "type": "MongoDB",
+        "orm": "Mongoose",
+        "use_case": "Document-oriented, flexible schema"
+      }
+    ],
+    "common_tables": ["users", "products", "orders", "settings"]
+  },
+  "api_patterns": {
+    "rest": {
+      "endpoints": [
+        "GET /api/resources",
+        "GET /api/resources/:id",
+        "POST /api/resources",
+        "PUT /api/resources/:id",
+        "DELETE /api/resources/:id"
+      ]
+    }
+  },
+  "deployment": {
+    "options": [
+      "Railway",
+      "Render",
+      "Heroku",
+      "DigitalOcean App Platform",
+      "AWS Elastic Beanstalk"
+    ]
+  }
+}

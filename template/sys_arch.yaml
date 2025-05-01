@@ -1,0 +1,23 @@
+architecture:
+  context:
+    users: ["Regular", "Admin"] # Define user roles for your application
+    external_systems: ["Auth Provider", "Payment Gateway"] # Common external dependencies
+  containers:
+    - name: Frontend
+      tech: "React + Tailwind" # Modern, responsive UI stack
+      hosting: "Vercel/Netlify" # Fast deployment options
+    - name: Backend
+      tech: "Express.js/FastAPI/Rails" # Choose based on team expertise
+      hosting: "Railway/Render/Heroku" # Managed hosting options
+    - name: Database
+      tech: "PostgreSQL/MongoDB" # SQL or NoSQL based on data needs
+      hosting: "Supabase/Atlas/RDS" # Managed database options
+  data_flow:
+    - step: "User interacts with UI"
+      next: "Frontend validates input"
+    - step: "Frontend sends request to API"
+      next: "API authenticates request"
+    - step: "API processes business logic"
+      next: "Database operation"
+    - step: "API returns response"
+      next: "UI updates with feedback"
